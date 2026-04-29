@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-list-ul"></i> 任務列表</h2>
+    <a href="{{ url_for('tasks.new_task') }}" class="btn btn-primary"><i class="fas fa-plus"></i> 新增任務</a>
+</div>
+
+<!-- Search and Filter Form -->
+<div class="card mb-4 shadow-sm border-0">
+    <div class="card-body bg-light rounded">
+        <form action="{{ url_for('tasks.index') }}" method="GET" class="row g-3 align-items-end">
+            <div class="col-md-5">
+                <label for="search" class="form-label text-secondary fw-bold">搜尋關鍵字 / 標籤</label>
+                <input type="text" class="form-control" id="search" name="search" value="{{ search }}">
+            </div>
+            <div class="col-md-5">
+                <label for="status" class="form-label text-secondary fw-bold">狀態過濾</label>
+                <select class="form-select" id="status" name="status">
+                    <option value="all" {% if status == 'all' %}selected{% endif %}>全部</option>
+                    <option value="active" {% if status == 'active' %}selected{% endif %}>未完成</option>
+                    <option value="completed" {% if status == 'completed' %}selected{% endif %}>已完成</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-secondary w-100"><i class="fas fa-search"></i> 搜尋</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Task List -->
+{% if tasks %}
+<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+    {% for task in tasks %}
+    <div class="col">
+        <div class="card h-100 shadow-sm transition-hover {% if task.is_completed %}border-success opacity-75{% else %}border-primary{% endif %}">
+            <div class="card-header d-flex justify-content-between align-items-center {% if task.is_completed %}bg-success text-white{% else %}bg-primary text-white{% endif %}">
+                <h5 class="card-title mb-0 text-truncate {% if task.is_completed %}text-decoration-line-through{% endif %}" title="{{ task.title }}">
+                    {{ task.title }}
+                </h5>
+                <span class="badge bg-light text-dark">{{ task.priority }}</span>
+            </div>
+            <div class="card-body">
+                <p class="card-text text-secondary mb-2">
+                    <i class="fas fa-tags fa-fw"></i> {{ task.tags if task.tags else '無標籤' }}
+                </p>
+                <p class="card-text text-secondary mb-2">
+                    <i class="far fa-calendar-alt fa-fw"></i> 截止：{{ task.due_date if task.due_date else '未設定' }}
+                </p>
+                <p class="card-text text-secondary mb-0">
+                    <small><i class="far fa-clock fa-fw"></i> 建立：{{ task.created_at[:10] }}</small>
+                </p>
+            </div>
+            <div class="card-footer bg-transparent border-top-0 d-flex justify-content-between pb-3">
+                <form action="{{ url_for('tasks.toggle_task', id=task.id) }}" method="POST" class="d-inline">
+                    <button type="submit" class="btn btn-sm {% if task.is_completed %}btn-warning{% else %}btn-success{% endif %}">
+                        {% if task.is_completed %}<i class="fas fa-undo"></i> 標為未完成{% else %}<i class="fas fa-check"></i> 標為完成{% endif %}
+                    </button>
+                </form>
+                <div>
+                    <a href="{{ url_for('tasks.edit_task', id=task.id) }}" class="btn btn-sm btn-outline-primary" title="編輯"><i class="fas fa-edit"></i></a>
+                    <form action="{{ url_for('tasks.delete_task', id=task.id) }}" method="POST" class="d-inline" onsubmit="return confirm('確定要刪除這個任務嗎？此動作無法復原！');">
+                        <button type="submit" class="btn btn-sm btn-outline-danger" title="刪除"><i class="fas fa-trash"></i></button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="alert alert-info text-center mt-5 p-5 shadow-sm rounded-3">
+    <i class="fas fa-clipboard-list fa-3x mb-3 text-secondary"></i>
+    <h4 class="alert-heading">目前沒有符合的任務！</h4>
+    <p class="mb-0 text-secondary">你可以點擊右上角的「新增任務」來建立新事項。</p>
+</div>
+{% endif %}
+{% endblock %}
